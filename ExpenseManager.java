@@ -127,14 +127,28 @@ public class ExpenseManager {
             System.out.println("Invalid format! Enter a valid choice");
             sc.next();
         }
-        typeChoice = sc.nextInt();
-        sc.nextLine();
 
-        String type = (typeChoice == 1) ? "income" : (typeChoice == 2) ? "expense" : " unknown";
-        if (type.equals("unknown")) {
-            System.out.println("Enter a valid choice 1 or 2 : ");
-            return;
+        String type = "";
+        while(true){
+            typeChoice = sc.nextInt();
+            sc.nextLine();
+            switch(typeChoice) {
+                case 1 -> {
+                    type = "income";
+                    break;
+                }
+                case 2 -> {
+                    type = "expense";
+                    break;
+                }
+                default -> {
+                    System.out.println("Enter a choice  1 or 2: ");
+                    continue;
+                }
+            }
+            break;
         }
+
 
         System.out.println("Enter the category of the typeDetail : ");
         String category = sc.nextLine().trim().toLowerCase();
@@ -148,13 +162,15 @@ public class ExpenseManager {
         double amt ;
         while(true){
             amt = sc.nextDouble();
-            if(amt<0){
+            sc.nextLine();
+            if(amt<=0){
                 System.out.println("please enter a valid amt!");
+                continue;
             }else{
                 break;
             }
         }
-        sc.nextLine();
+
 
         System.out.println("Enter the date in (MM-YYYY) format valid between 01 and 12 : ");
         String date;
