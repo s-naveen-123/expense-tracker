@@ -8,6 +8,8 @@ import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Scanner;
 //import java.nio.file.Path;
 //import java.nio.file.Files;
@@ -21,11 +23,13 @@ public class ExpenseManager {
         boolean isRunning = true;
         Scanner sc = new Scanner(System.in);
         while(isRunning){
+            System.out.println("\n----------------------------------------");
             System.out.println("Expense Tracker - Select an option : ");
             System.out.println("1) Add Transaction ");
             System.out.println("2) View Monthly Summary");
             System.out.println("3) load data from given file");
             System.out.println("4) save and exit");
+            System.out.println("\n----------------------------------------");
             int choice = sc.nextInt();
             sc.nextLine();
             switch(choice){
@@ -55,30 +59,65 @@ public class ExpenseManager {
         
     }
 
+
     private static void viewMonthlySummaries(Scanner sc) {
         System.out.println("Enter the month and year in (MM-YYYY) : ");
         String month = sc.nextLine().trim();
-        double totalIncome = 0;
-        double totalExpenses = 0;
-        for(Transactions transaction : transactions){
-            if(transaction.getDate().equals(month)){
-                if(transaction.getTypeDetail().equals("income")){
+
+        double totalIncome = 0, totalExpenses = 0;
+        Map<String, Double> incomeByCategory = new HashMap<>();
+        Map<String, Double> expensesByCategory = new HashMap<>();
+
+        for (Transactions transaction : transactions) {
+            if (transaction.getDate().equals(month)) {
+                if (transaction.getTypeDetail().equalsIgnoreCase("income")) {
                     totalIncome += transaction.getAmount();
-                }else{
+                    incomeByCategory.merge(transaction.getCategory(), transaction.getAmount(), Double::sum);
+                } else {
                     totalExpenses += transaction.getAmount();
+                    expensesByCategory.merge(transaction.getCategory(), transaction.getAmount(), Double::sum);
                 }
             }
         }
-        System.out.println("Summary for month & year : " + month);
-        System.out.println("Total Income : " + totalIncome);
-        System.out.println("Total Expenses incurred : " + totalExpenses);
-        double netBalance = totalIncome - totalExpenses;
-        if(netBalance>0){
-             System.out.println("Net Savings : " + netBalance);
-        }else{
-            System.out.println("Net debt : " + netBalance);
+
+        // Display Summary
+        System.out.println("\n Summary for: " + month);
+        System.out.println("----------------------------------------");
+
+        System.out.println("\n Income Breakdown:");
+        if (incomeByCategory.isEmpty()) {
+            System.out.println("No income recorded.");
+        } else {
+            incomeByCategory.forEach((category, amount) ->
+                    System.out.printf("   %s: $%.2f%n", category, amount)
+            );
         }
+
+        System.out.println("\n Expense Breakdown:");
+        if (expensesByCategory.isEmpty()) {
+            System.out.println("No expenses recorded.");
+        } else {
+            expensesByCategory.forEach((category, amount) ->
+                    System.out.printf("    %s: $%.2f%n", category, amount)
+            );
+        }
+
+        System.out.println("\n----------------------------------------");
+        System.out.printf(" Total Income: $%.2f%n", totalIncome);
+        System.out.printf(" Total Expenses: $%.2f%n", totalExpenses);
+
+        double netBalance = totalIncome - totalExpenses;
+        System.out.println("\n----------------------------------------");
+
+        if (netBalance > 0) {
+            System.out.printf(" Net Savings: $%.2f%n", netBalance);
+        } else {
+            System.out.printf(" Net Debt: $%.2f%n", Math.abs(netBalance));
+        }
+
+        System.out.println("----------------------------------------\n");
     }
+
 
     private static void addTransactions(Scanner sc) {
         System.out.println("Enter the type detail ( 1) for Income OR 2) for Expense) :  ");
@@ -105,7 +144,16 @@ public class ExpenseManager {
             System.out.println("enter a valid amt");
             sc.next();
         }
-        double amt = sc.nextDouble();
+
+        double amt ;
+        while(true){
+            amt = sc.nextDouble();
+            if(amt<0){
+                System.out.println("please enter a valid amt!");
+            }else{
+                break;
+            }
+        }
         sc.nextLine();
 
         System.out.println("Enter the date in (MM-YYYY) format valid between 01 and 12 : ");
